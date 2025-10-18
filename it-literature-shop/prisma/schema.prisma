@@ -1,0 +1,71 @@
+// Mendefinisikan generator untuk Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Mendefinisikan koneksi ke database PostgreSQL
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // URL database diambil dari environment variable
+}
+
+// Model untuk tabel 'users'
+model User {
+  id         String   @id @default(uuid()) @db.Uuid
+  username   String?
+  password   String
+  email      String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  orders     Order[] // Relasi one-to-many ke model Order
+}
+
+// Model untuk tabel 'books'
+model Book {
+  id               String      @id @default(uuid()) @db.Uuid
+  title            String      @unique
+  writer           String
+  publisher        String
+  publication_year Int
+  description      String?
+  price            Decimal     @db.Decimal(12, 2) // Tipe Decimal lebih cocok untuk harga
+  stock_quantity   Int
+  genre_id         String      @db.Uuid
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  deleted_at       DateTime?
+  genre            Genre       @relation(fields: [genre_id], references: [id]) // Relasi many-to-one ke model Genre
+  order_items      OrderItem[] // Relasi one-to-many ke model OrderItem
+}
+
+// Model untuk tabel 'genres'
+model Genre {
+  id         String    @id @default(uuid()) @db.Uuid
+  name       String    @unique
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  books      Book[] // Relasi one-to-many ke model Book
+}
+
+// Model untuk tabel 'orders'
+model Order {
+  id          String      @id @default(uuid()) @db.Uuid
+  user_id     String      @db.Uuid
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  user        User        @relation(fields: [user_id], references: [id]) // Relasi many-to-one ke model User
+  order_items OrderItem[] // Relasi one-to-many ke model OrderItem
+}
+
+// Model untuk tabel 'order_items'
+model OrderItem {
+  id         String   @id @default(uuid()) @db.Uuid
+  quantity   Int
+  order_id   String   @db.Uuid
+  book_id    String   @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  order      Order    @relation(fields: [order_id], references: [id]) // Relasi many-to-one ke model Order
+  book       Book     @relation(fields: [book_id], references: [id]) // Relasi many-to-one ke model Book
+}
