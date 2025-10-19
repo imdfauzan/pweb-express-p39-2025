@@ -2,6 +2,8 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import authRouter from './auth/auth.routes'; // <-- Import router auth
 import genreRouter from './genres/genre.routes'; // <-- Import router genre
+import bookRouter from './books/book.routes'; // <-- Import router buku
+import transactionRouter from './transaction/transaction.routes'; // <-- Import
 
 const app: Express = express();
 
@@ -18,6 +20,8 @@ app.get('/health-check', (req: Request, res: Response) => {
 // Daftarkan router untuk endpoint /auth
 app.use('/auth', authRouter); // <-- Gunakan router
 app.use('/genre', genreRouter); // <-- Gunakan router genre
+app.use('/books', bookRouter); // <-- Gunakan router buku
+app.use('/transactions', transactionRouter); // <-- Gunakan router transaksi
 
 // Middleware untuk menangani error global
 // Ini akan menangkap error yang dilempar dari controller

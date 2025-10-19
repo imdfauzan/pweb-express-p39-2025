@@ -28,3 +28,27 @@ export const getAllGenres = async () => {
   });
   return genres;
 };
+
+export const getGenreById = async (id: string) => {
+  const genre = await prisma.genre.findFirst({
+    where: { id, deleted_at: null }, // Pastikan tidak mengambil yang sudah di-soft-delete
+    select: { id: true, name: true },
+  });
+  return genre;
+};
+
+export const updateGenre = async (id: string, name: string) => {
+  const genre = await prisma.genre.update({
+    where: { id },
+    data: { name },
+  });
+  return genre;
+};
+
+export const deleteGenre = async (id: string) => {
+  // Ini adalah "soft delete", kita hanya mengisi kolom deleted_at
+  await prisma.genre.update({
+    where: { id },
+    data: { deleted_at: new Date() },
+  });
+};
