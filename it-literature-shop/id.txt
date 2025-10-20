@@ -1,0 +1,17 @@
+fauzan@gmail.com
+111
+
+id genre history
+e73a8ae7-2810-4055-a52a-45b637d36cc5
+
+id genre fiction
+1673114f-9028-4a74-b6f0-11e9dbcada57	
+
+id buku hack nasa sci fi
+8df2e8a8-0b03-4cf4-b007-45bd717d26cc
+
+id buku indonesia histori
+694173a8-dc86-48ea-91d4-70f742cc7058
+
+id buku laskar pelangin fiction
+322f2114-3d88-4eb1-89a7-fce2f5684ac7

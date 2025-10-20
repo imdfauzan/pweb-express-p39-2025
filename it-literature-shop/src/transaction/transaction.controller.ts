@@ -1,6 +1,11 @@
 // src/transactions/transaction.controller.ts
 import { Request, Response, NextFunction } from 'express';
-import { createTransaction } from './transaction.service';
+import {
+  createTransaction,
+  getAllTransactions,
+  getTransactionById,
+  getTransactionStatistics,
+} from './transaction.service';
 
 export const createTransactionController = async (
   req: Request,
@@ -29,5 +34,65 @@ export const createTransactionController = async (
       success: false,
       message: error.message,
     });
+  }
+};
+
+export const getAllTransactionsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const transactions = await getAllTransactions();
+    res.status(200).json({
+      success: true,
+      message: 'Get all transaction successfully',
+      data: transactions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTransactionByIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const transaction = await getTransactionById(id);
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Get transaction detail successfully',
+      data: transaction,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTransactionStatisticsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const stats = await getTransactionStatistics();
+    res.status(200).json({
+      success: true,
+      message: 'Get transactions statistics successfully',
+      data: stats,
+    });
+  } catch (error) {
+    next(error);
   }
 };

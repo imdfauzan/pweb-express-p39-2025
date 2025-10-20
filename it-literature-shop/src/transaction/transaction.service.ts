@@ -75,3 +75,140 @@ export const createTransaction = async (
 
   return result;
 };
+
+export const getAllTransactions = async () => {
+  const orders = await prisma.order.findMany({
+    include: {
+      order_items: {
+        include: {
+          book: true, // Ambil data buku untuk menghitung total harga
+        },
+      },
+    },
+    orderBy: {
+      created_at: 'desc', // Tampilkan yang terbaru dulu
+    },
+  });
+
+  // Format data agar sesuai dengan response yang diinginkan
+  return orders.map((order) => {
+    const total_quantity = order.order_items.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    const total_price = order.order_items.reduce(
+      (sum, item) => sum + item.quantity * Number(item.book.price),
+      0
+    );
+    return {
+      id: order.id,
+      total_quantity,
+      total_price,
+    };
+  });
+};
+
+export const getTransactionById = async (orderId: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      order_items: {
+        select: {
+          quantity: true,
+          book: {
+            select: {
+              id: true,
+              title: true,
+              price: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    return null;
+  }
+
+  // Format data agar sesuai response
+  const total_quantity = order.order_items.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
+  const total_price = order.order_items.reduce(
+    (sum, item) => sum + item.quantity * Number(item.book.price),
+    0
+  );
+
+  return {
+    id: order.id,
+    items: order.order_items.map((item) => ({
+      book_id: item.book.id,
+      book_title: item.book.title,
+      quantity: item.quantity,
+      subtotal_price: item.quantity * Number(item.book.price),
+    })),
+    total_quantity,
+    total_price,
+  };
+};
+
+export const getTransactionStatistics = async () => {
+    // 1. Hitung total transaksi
+    const total_transactions = await prisma.order.count();
+  
+    // 2. Kalkulasi total penjualan dari semua item di semua order
+    const allOrderItems = await prisma.orderItem.findMany({
+      include: { book: true },
+    });
+    const totalRevenue = allOrderItems.reduce(
+      (sum, item) => sum + item.quantity * Number(item.book.price),
+      0
+    );
+  
+    // 3. Hitung rata-rata
+    const average_transaction_amount = total_transactions > 0 ? totalRevenue / total_transactions : 0;
+  
+    // 4. Cari genre penjualan terbanyak dan tersedikit
+    const genreSales = await prisma.genre.findMany({
+      include: {
+        books: {
+          include: {
+            order_items: {
+              select: { quantity: true },
+            },
+          },
+        },
+      },
+    });
+  
+    let maxSales = -1;
+    let minSales = Infinity;
+    let most_book_sales_genre = 'N/A';
+    let fewest_book_sales_genre = 'N/A';
+  
+    genreSales.forEach(genre => {
+      const totalQuantity = genre.books.reduce((genreSum, book) => {
+        return genreSum + book.order_items.reduce((bookSum, item) => bookSum + item.quantity, 0);
+      }, 0);
+  
+      if (totalQuantity > 0) {
+        if (totalQuantity > maxSales) {
+          maxSales = totalQuantity;
+          most_book_sales_genre = genre.name;
+        }
+        if (totalQuantity < minSales) {
+          minSales = totalQuantity;
+          fewest_book_sales_genre = genre.name;
+        }
+      }
+    });
+  
+    return {
+      total_transactions,
+      average_transaction_amount,
+      most_book_sales_genre,
+      fewest_book_sales_genre,
+    };
+  };
