@@ -13,7 +13,7 @@ export const registerUserSchema = z.object({
 
 export const loginUserSchema = z.object({
   body: z.object({
-    email: z.string().email({ message: 'Must be a valid email' }),
+    username: z.string().min(1, { message: 'Username is required' }),
     password: z.string().min(1, { message: 'Password is required' }),
   }),
 });

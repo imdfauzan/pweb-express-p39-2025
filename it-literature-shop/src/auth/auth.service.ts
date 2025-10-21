@@ -1,18 +1,20 @@
 // src/auth/auth.service.ts
-import { User } from '@prisma/client';
 import prisma from '../utils/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'; // <-- Import JWT
 
 // Tipe data untuk input register
-// Kita akan menggunakan Zod untuk validasi nanti, tapi untuk sekarang kita definisikan manual
-type CreateUserInput = Omit<User, 'id' | 'created_at' | 'updated_at'>;
+type CreateUserInput = {
+  email: string;
+  username: string;
+  password: string;
+};
 
 export const createUser = async (input: CreateUserInput) => {
   // Hash password sebelum disimpan
   const hashedPassword = await bcrypt.hash(input.password, 10);
 
-  const user = await prisma.user.create({
+  const user = await prisma.users.create({
     data: {
       email: input.email,
       username: input.username,
@@ -23,12 +25,15 @@ export const createUser = async (input: CreateUserInput) => {
   return user;
 };
 
-type LoginUserInput = Pick<User, 'email' | 'password'>;
+type LoginUserInput = {
+  username: string;
+  password: string;
+};
 
 export const loginUser = async (input: LoginUserInput) => {
-  // 1. Cari user berdasarkan email
-  const user = await prisma.user.findUnique({
-    where: { email: input.email },
+  // 1. Cari user berdasarkan username
+  const user = await prisma.users.findFirst({
+    where: { username: input.username },
   });
 
   if (!user) {
@@ -56,7 +61,7 @@ export const loginUser = async (input: LoginUserInput) => {
 };
 
 export const findUserById = async (id: string) => {
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { id },
   });
 

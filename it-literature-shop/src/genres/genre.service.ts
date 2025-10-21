@@ -2,7 +2,7 @@
 import prisma from '../utils/prisma';
 
 export const createGenre = async (name: string) => {
-  const genre = await prisma.genre.create({
+  const genre = await prisma.genres.create({
     data: {
       name,
     },
@@ -14,7 +14,7 @@ export const createGenre = async (name: string) => {
 // Kita akan buat sederhana dulu, lalu tambahkan pagination nanti
 export const getAllGenres = async () => {
   // Hanya ambil genre yang belum di "soft delete"
-  const genres = await prisma.genre.findMany({
+  const genres = await prisma.genres.findMany({
     where: {
       deleted_at: null,
     },
@@ -30,7 +30,7 @@ export const getAllGenres = async () => {
 };
 
 export const getGenreById = async (id: string) => {
-  const genre = await prisma.genre.findFirst({
+  const genre = await prisma.genres.findFirst({
     where: { id, deleted_at: null }, // Pastikan tidak mengambil yang sudah di-soft-delete
     select: { id: true, name: true },
   });
@@ -38,7 +38,7 @@ export const getGenreById = async (id: string) => {
 };
 
 export const updateGenre = async (id: string, name: string) => {
-  const genre = await prisma.genre.update({
+  const genre = await prisma.genres.update({
     where: { id },
     data: { name },
   });
@@ -47,7 +47,7 @@ export const updateGenre = async (id: string, name: string) => {
 
 export const deleteGenre = async (id: string) => {
   // Ini adalah "soft delete", kita hanya mengisi kolom deleted_at
-  await prisma.genre.update({
+  await prisma.genres.update({
     where: { id },
     data: { deleted_at: new Date() },
   });

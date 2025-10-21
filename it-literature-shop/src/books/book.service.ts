@@ -1,18 +1,26 @@
 // src/books/book.service.ts
-import { Book } from '@prisma/client';
 import prisma from '../utils/prisma';
 
-type CreateBookInput = Omit<Book, 'id' | 'created_at' | 'updated_at' | 'deleted_at'>;
+type CreateBookInput = {
+  title: string;
+  writer: string;
+  publisher: string;
+  publication_year: number;
+  description: string;
+  price: number;
+  stock_quantity: number;
+  genre_id: string;
+};
 
 export const createBook = async (input: CreateBookInput) => {
-  const book = await prisma.book.create({
+  const book = await prisma.books.create({
     data: input,
   });
   return book;
 };
 
 export const getAllBooks = async () => {
-  const books = await prisma.book.findMany({
+  const books = await prisma.books.findMany({
     where: {
       deleted_at: null,
     },
@@ -24,7 +32,7 @@ export const getAllBooks = async () => {
       publication_year: true,
       price: true,
       stock_quantity: true,
-      genre: {
+      genres: {
         select: {
           name: true,
         },
@@ -35,7 +43,7 @@ export const getAllBooks = async () => {
 };
 
 export const getBookById = async (id: string) => {
-  const book = await prisma.book.findFirst({
+  const book = await prisma.books.findFirst({
     where: { id, deleted_at: null },
     select: {
       id: true,
@@ -46,7 +54,7 @@ export const getBookById = async (id: string) => {
       price: true,
       stock_quantity: true,
       description: true,
-      genre: {
+      genres: {
         select: {
           name: true,
         },
@@ -58,7 +66,7 @@ export const getBookById = async (id: string) => {
 
   return {
     ...book,
-    genre: book.genre.name,
+    genre: book.genres.name,
   };
 };
 
@@ -69,7 +77,7 @@ interface UpdateBookInput {
 }
 
 export const updateBook = async (id: string, data: UpdateBookInput) => {
-  const book = await prisma.book.update({
+  const book = await prisma.books.update({
     where: { id },
     data,
   });
@@ -77,14 +85,14 @@ export const updateBook = async (id: string, data: UpdateBookInput) => {
 };
 
 export const deleteBook = async (id: string) => {
-  await prisma.book.update({
+  await prisma.books.update({
     where: { id },
     data: { deleted_at: new Date() },
   });
 };
 
 export const getBooksByGenre = async (genreId: string) => {
-  const books = await prisma.book.findMany({
+  const books = await prisma.books.findMany({
     where: {
       genre_id: genreId,
       deleted_at: null,
@@ -97,7 +105,7 @@ export const getBooksByGenre = async (genreId: string) => {
       publication_year: true,
       price: true,
       stock_quantity: true,
-      genre: {
+      genres: {
         select: {
           name: true,
         },
@@ -107,6 +115,6 @@ export const getBooksByGenre = async (genreId: string) => {
 
   return books.map((book) => ({
     ...book,
-    genre: book.genre.name,
+    genre: book.genres.name,
   }));
 };  // <-- pastikan ada kurung tutup di sini

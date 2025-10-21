@@ -45,14 +45,14 @@ export const loginUserController = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.body;
-    const accessToken = await loginUser({ email, password });
+    const { username, password } = req.body;
+    const accessToken = await loginUser({ username, password });
 
     res.status(200).json({
       success: true,
-      message: 'Login successfully',
+      message: 'Login successful',
       data: {
-        access_token: accessToken,
+        token: accessToken,
       },
     });
   } catch (error: any) {

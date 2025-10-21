@@ -14,7 +14,7 @@ export const createTransaction = async (
   const result = await prisma.$transaction(async (tx) => {
     // 1. Ambil semua data buku yang dipesan dalam satu query
     const bookIds = items.map((item) => item.book_id);
-    const books = await tx.book.findMany({
+    const books = await tx.books.findMany({
       where: {
         id: { in: bookIds },
         deleted_at: null, // Pastikan buku belum dihapus
@@ -38,14 +38,14 @@ export const createTransaction = async (
     }
 
     // 3. Buat record Order
-    const order = await tx.order.create({
+    const order = await tx.orders.create({
       data: {
         user_id: userId,
       },
     });
 
     // 4. Buat record OrderItem untuk setiap item
-    await tx.orderItem.createMany({
+    await tx.order_items.createMany({
       data: items.map((item) => ({
         order_id: order.id,
         book_id: item.book_id,
@@ -55,7 +55,7 @@ export const createTransaction = async (
 
     // 5. Update stok setiap buku (ini bagian paling krusial)
     for (const item of items) {
-      await tx.book.update({
+      await tx.books.update({
         where: { id: item.book_id },
         data: {
           stock_quantity: {
@@ -77,11 +77,11 @@ export const createTransaction = async (
 };
 
 export const getAllTransactions = async () => {
-  const orders = await prisma.order.findMany({
+  const orders = await prisma.orders.findMany({
     include: {
       order_items: {
         include: {
-          book: true, // Ambil data buku untuk menghitung total harga
+          books: true, // Ambil data buku untuk menghitung total harga
         },
       },
     },
@@ -97,7 +97,7 @@ export const getAllTransactions = async () => {
       0
     );
     const total_price = order.order_items.reduce(
-      (sum, item) => sum + item.quantity * Number(item.book.price),
+      (sum, item) => sum + item.quantity * Number(item.books.price),
       0
     );
     return {
@@ -109,13 +109,13 @@ export const getAllTransactions = async () => {
 };
 
 export const getTransactionById = async (orderId: string) => {
-  const order = await prisma.order.findUnique({
+  const order = await prisma.orders.findUnique({
     where: { id: orderId },
     include: {
       order_items: {
         select: {
           quantity: true,
-          book: {
+          books: {
             select: {
               id: true,
               title: true,
@@ -137,17 +137,17 @@ export const getTransactionById = async (orderId: string) => {
     0
   );
   const total_price = order.order_items.reduce(
-    (sum, item) => sum + item.quantity * Number(item.book.price),
+    (sum, item) => sum + item.quantity * Number(item.books.price),
     0
   );
 
   return {
     id: order.id,
     items: order.order_items.map((item) => ({
-      book_id: item.book.id,
-      book_title: item.book.title,
+      book_id: item.books.id,
+      book_title: item.books.title,
       quantity: item.quantity,
-      subtotal_price: item.quantity * Number(item.book.price),
+      subtotal_price: item.quantity * Number(item.books.price),
     })),
     total_quantity,
     total_price,
@@ -156,14 +156,14 @@ export const getTransactionById = async (orderId: string) => {
 
 export const getTransactionStatistics = async () => {
     // 1. Hitung total transaksi
-    const total_transactions = await prisma.order.count();
+    const total_transactions = await prisma.orders.count();
   
     // 2. Kalkulasi total penjualan dari semua item di semua order
-    const allOrderItems = await prisma.orderItem.findMany({
-      include: { book: true },
+    const allOrderItems = await prisma.order_items.findMany({
+      include: { books: true },
     });
     const totalRevenue = allOrderItems.reduce(
-      (sum, item) => sum + item.quantity * Number(item.book.price),
+      (sum, item) => sum + item.quantity * Number(item.books.price),
       0
     );
   
@@ -171,7 +171,7 @@ export const getTransactionStatistics = async () => {
     const average_transaction_amount = total_transactions > 0 ? totalRevenue / total_transactions : 0;
   
     // 4. Cari genre penjualan terbanyak dan tersedikit
-    const genreSales = await prisma.genre.findMany({
+    const genreSales = await prisma.genres.findMany({
       include: {
         books: {
           include: {

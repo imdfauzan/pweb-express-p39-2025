@@ -23,7 +23,7 @@ router.post('/', validate(createGenreSchema), createGenreController);
 router.get('/', getAllGenresController);
 
 router.get('/:id', getGenreByIdController);
-router.patch('/:id', validate(updateGenreSchema), updateGenreController);
+router.put('/:id', validate(updateGenreSchema), updateGenreController);
 router.delete('/:id', deleteGenreController);
 
 export default router;
