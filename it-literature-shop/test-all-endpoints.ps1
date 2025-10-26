@@ -89,7 +89,7 @@ Start-Sleep -Seconds 1
 Write-Info "Test 4: POST /auth/login"
 try {
     $body = @{
-        username = "admin"
+        email = "admin@example.com"
         password = "password123"
     } | ConvertTo-Json
     
@@ -188,13 +188,13 @@ if ($GENRE_ID) {
 
 # 9. Update Genre
 if ($NEW_GENRE_ID) {
-    Write-Info "Test 9: PUT /genre/$NEW_GENRE_ID"
+    Write-Info "Test 9: PATCH /genre/$NEW_GENRE_ID"
     try {
         $body = @{
             name = "Updated Genre $(Get-Random -Maximum 9999)"
         } | ConvertTo-Json
         
-        $response = Invoke-RestMethod -Uri "$BASE_URL/genre/$NEW_GENRE_ID" -Method PUT -Body $body -Headers $headers
+        $response = Invoke-RestMethod -Uri "$BASE_URL/genre/$NEW_GENRE_ID" -Method PATCH -Body $body -Headers $headers
         if ($response.success) {
             Write-Success "Update Genre Passed"
             Write-Host "   Updated to: $($response.data.name)" -ForegroundColor Gray
@@ -310,7 +310,7 @@ if ($GENRE_ID) {
 
 # 15. Update Book
 if ($NEW_BOOK_ID) {
-    Write-Info "Test 15: PUT /books/$NEW_BOOK_ID"
+    Write-Info "Test 15: PATCH /books/$NEW_BOOK_ID"
     try {
         $body = @{
             description = "Updated description for test book"
@@ -318,7 +318,7 @@ if ($NEW_BOOK_ID) {
             stock_quantity = 100
         } | ConvertTo-Json
         
-        $response = Invoke-RestMethod -Uri "$BASE_URL/books/$NEW_BOOK_ID" -Method PUT -Body $body -Headers $headers
+        $response = Invoke-RestMethod -Uri "$BASE_URL/books/$NEW_BOOK_ID" -Method PATCH -Body $body -Headers $headers
         if ($response.success) {
             Write-Success "Update Book Passed"
             Write-Host "   New Price: $($response.data.price)" -ForegroundColor Gray

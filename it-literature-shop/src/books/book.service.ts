@@ -77,6 +77,18 @@ interface UpdateBookInput {
 }
 
 export const updateBook = async (id: string, data: UpdateBookInput) => {
+  // Cek apakah book ada dan belum dihapus
+  const existingBook = await prisma.books.findFirst({
+    where: { id, deleted_at: null },
+  });
+
+  if (!existingBook) {
+    const error: any = new Error('Book not found');
+    error.code = 'P2025';
+    throw error;
+  }
+
+  // Update book
   const book = await prisma.books.update({
     where: { id },
     data,
@@ -85,6 +97,18 @@ export const updateBook = async (id: string, data: UpdateBookInput) => {
 };
 
 export const deleteBook = async (id: string) => {
+  // Cek apakah book ada dan belum dihapus
+  const book = await prisma.books.findFirst({
+    where: { id, deleted_at: null },
+  });
+
+  if (!book) {
+    const error: any = new Error('Book not found');
+    error.code = 'P2025';
+    throw error;
+  }
+
+  // Soft delete - set deleted_at
   await prisma.books.update({
     where: { id },
     data: { deleted_at: new Date() },

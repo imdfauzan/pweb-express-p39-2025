@@ -26,14 +26,14 @@ export const createUser = async (input: CreateUserInput) => {
 };
 
 type LoginUserInput = {
-  username: string;
+  email: string;
   password: string;
 };
 
 export const loginUser = async (input: LoginUserInput) => {
-  // 1. Cari user berdasarkan username
+  // 1. Cari user berdasarkan email
   const user = await prisma.users.findFirst({
-    where: { username: input.username },
+    where: { email: input.email },
   });
 
   if (!user) {

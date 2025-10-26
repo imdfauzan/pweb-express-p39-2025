@@ -26,7 +26,7 @@ router.get('/', getAllBooksController);
 router.get('/genre/:id', getBooksByGenreController);
 
 router.get('/:id', getBookByIdController);
-router.put('/:id', validate(updateBookSchema), updateBookController);
+router.patch('/:id', validate(updateBookSchema), updateBookController);
 router.delete('/:id', deleteBookController);
 
 export default router;

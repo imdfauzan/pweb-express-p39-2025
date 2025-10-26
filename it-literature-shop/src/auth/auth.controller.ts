@@ -26,12 +26,20 @@ export const registerUserController = async (
       },
     });
   } catch (error: any) {
-    // Jika email sudah ada, Prisma akan melempar error unik. Kita akan tangani ini.
+    // Jika email atau username sudah ada, Prisma akan melempar error unik
     // Kode P2002 adalah untuk unique constraint violation
     if (error.code === 'P2002') {
+      // Cek field mana yang duplikat dari error meta
+      const field = error.meta?.target?.[0] || 'field';
+      const message = field === 'email' 
+        ? 'Email already exists' 
+        : field === 'username'
+        ? 'Username already exists'
+        : 'Duplicate entry';
+      
       return res.status(409).json({ // 409 Conflict
         success: false,
-        message: 'Email already exists',
+        message,
       });
     }
     // Kirim error ke error handler global jika ada masalah lain
@@ -45,8 +53,8 @@ export const loginUserController = async (
   next: NextFunction
 ) => {
   try {
-    const { username, password } = req.body;
-    const accessToken = await loginUser({ username, password });
+    const { email, password } = req.body;
+    const accessToken = await loginUser({ email, password });
 
     res.status(200).json({
       success: true,

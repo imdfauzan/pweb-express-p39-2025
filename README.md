@@ -118,7 +118,6 @@ it-literature-shop/
 | File | Description |
 |------|-------------|
 | `API-DOCUMENTATION.md` | Complete API reference with all endpoints, request/response examples, and status codes |
-| `DEPLOYMENT-GUIDE.md` | Step-by-step deployment instructions, troubleshooting, and verification steps |
 | `TESTING-GUIDE.md` | Postman collection usage guide and testing workflow |
 | `api-status.json` | Quick API status overview and endpoint summary |
 
@@ -222,16 +221,8 @@ NODE_ENV="development"
 ✅ Error handling  
 ✅ Password hashing (bcrypt)  
 ✅ Complete API documentation  
-✅ Postman collection for testing  
 
----
 
-## 📞 Support
-
-For setup help or issues:
-1. Check `DEPLOYMENT-GUIDE.md` for troubleshooting
-2. Review `API-DOCUMENTATION.md` for endpoint details
-3. Use Postman collection for testing examples
 
 ---
 
