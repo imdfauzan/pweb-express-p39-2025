@@ -11,9 +11,9 @@ import { authenticate } from '../middleware/auth';
 
 const router = Router();
 
-router.post('/register', registerUserController);
-router.post('/login', validate(loginUserSchema), loginUserController); // <-- Rute baru
+router.post('/register', validate(registerUserSchema), registerUserController);
+router.post('/login', validate(loginUserSchema), loginUserController);
 
-router.get('/me', authenticate, getMeController); // <-- Rute baru yang terproteksi
+router.get('/me', authenticate, getMeController);
 
 export default router;

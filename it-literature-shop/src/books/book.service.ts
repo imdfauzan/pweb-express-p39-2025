@@ -13,17 +13,74 @@ type CreateBookInput = {
 };
 
 export const createBook = async (input: CreateBookInput) => {
+  // Cek duplikasi title (case-insensitive)
+  const existingBook = await prisma.books.findFirst({
+    where: {
+      title: {
+        equals: input.title,
+        mode: 'insensitive',
+      },
+      deleted_at: null,
+    },
+  });
+
+  if (existingBook) {
+    const error: any = new Error('Book with that title already exists');
+    error.code = 'P2002';
+    throw error;
+  }
+
   const book = await prisma.books.create({
     data: input,
   });
   return book;
 };
 
-export const getAllBooks = async () => {
+export const getAllBooks = async (filters?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  genre_id?: string;
+  min_price?: number;
+  max_price?: number;
+}) => {
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 10;
+  const skip = (page - 1) * limit;
+
+  // Build where clause
+  const where: any = {
+    deleted_at: null,
+  };
+
+  if (filters?.search) {
+    where.OR = [
+      { title: { contains: filters.search, mode: 'insensitive' } },
+      { writer: { contains: filters.search, mode: 'insensitive' } },
+      { publisher: { contains: filters.search, mode: 'insensitive' } },
+    ];
+  }
+
+  if (filters?.genre_id) {
+    where.genre_id = filters.genre_id;
+  }
+
+  if (filters?.min_price !== undefined || filters?.max_price !== undefined) {
+    where.price = {};
+    if (filters.min_price !== undefined) {
+      where.price.gte = filters.min_price;
+    }
+    if (filters.max_price !== undefined) {
+      where.price.lte = filters.max_price;
+    }
+  }
+
+  // Get total count for pagination
+  const total = await prisma.books.count({ where });
+
+  // Get books
   const books = await prisma.books.findMany({
-    where: {
-      deleted_at: null,
-    },
+    where,
     select: {
       id: true,
       title: true,
@@ -38,8 +95,22 @@ export const getAllBooks = async () => {
         },
       },
     },
+    skip,
+    take: limit,
+    orderBy: {
+      created_at: 'desc',
+    },
   });
-  return books;
+
+  return {
+    data: books,
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+  };
 };
 
 export const getBookById = async (id: string) => {
@@ -115,12 +186,50 @@ export const deleteBook = async (id: string) => {
   });
 };
 
-export const getBooksByGenre = async (genreId: string) => {
+export const getBooksByGenre = async (
+  genreId: string,
+  filters?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    min_price?: number;
+    max_price?: number;
+  }
+) => {
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 10;
+  const skip = (page - 1) * limit;
+
+  // Build where clause
+  const where: any = {
+    genre_id: genreId,
+    deleted_at: null,
+  };
+
+  if (filters?.search) {
+    where.OR = [
+      { title: { contains: filters.search, mode: 'insensitive' } },
+      { writer: { contains: filters.search, mode: 'insensitive' } },
+      { publisher: { contains: filters.search, mode: 'insensitive' } },
+    ];
+  }
+
+  if (filters?.min_price !== undefined || filters?.max_price !== undefined) {
+    where.price = {};
+    if (filters.min_price !== undefined) {
+      where.price.gte = filters.min_price;
+    }
+    if (filters.max_price !== undefined) {
+      where.price.lte = filters.max_price;
+    }
+  }
+
+  // Get total count
+  const total = await prisma.books.count({ where });
+
+  // Get books
   const books = await prisma.books.findMany({
-    where: {
-      genre_id: genreId,
-      deleted_at: null,
-    },
+    where,
     select: {
       id: true,
       title: true,
@@ -135,10 +244,23 @@ export const getBooksByGenre = async (genreId: string) => {
         },
       },
     },
+    skip,
+    take: limit,
+    orderBy: {
+      created_at: 'desc',
+    },
   });
 
-  return books.map((book) => ({
-    ...book,
-    genre: book.genres.name,
-  }));
+  return {
+    data: books.map((book) => ({
+      ...book,
+      genre: book.genres.name,
+    })),
+    pagination: {
+      page,
+      limit,
+      total,
+      total_pages: Math.ceil(total / limit),
+    },
+  };
 };  // <-- pastikan ada kurung tutup di sini

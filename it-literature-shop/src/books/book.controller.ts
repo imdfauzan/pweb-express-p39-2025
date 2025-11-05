@@ -50,11 +50,24 @@ export const getAllBooksController = async (
   next: NextFunction
 ) => {
   try {
-    const books = await getAllBooks();
+    const { page, limit, search, genre_id, min_price, max_price } = req.query;
+
+    const filters = {
+      page: page ? parseInt(page as string) : undefined,
+      limit: limit ? parseInt(limit as string) : undefined,
+      search: search as string,
+      genre_id: genre_id as string,
+      min_price: min_price ? parseFloat(min_price as string) : undefined,
+      max_price: max_price ? parseFloat(max_price as string) : undefined,
+    };
+
+    const result = await getAllBooks(filters);
+    
     res.status(200).json({
       success: true,
       message: 'Get all book successfully',
-      data: books,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
     next(error);
@@ -147,11 +160,23 @@ export const getBooksByGenreController = async (
 ) => {
   try {
     const { id } = req.params;
-    const books = await getBooksByGenre(id);
+    const { page, limit, search, min_price, max_price } = req.query;
+
+    const filters = {
+      page: page ? parseInt(page as string) : undefined,
+      limit: limit ? parseInt(limit as string) : undefined,
+      search: search as string,
+      min_price: min_price ? parseFloat(min_price as string) : undefined,
+      max_price: max_price ? parseFloat(max_price as string) : undefined,
+    };
+
+    const result = await getBooksByGenre(id, filters);
+    
     res.status(200).json({
       success: true,
       message: 'Get all book by genre successfully',
-      data: books,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
     next(error);
